@@ -22,6 +22,7 @@ import {
   Radio,
   MenuItem,
   Select,
+  Typography,
 } from "@mui/material";
 
 import * as XLSX from "xlsx";
@@ -58,7 +59,14 @@ const AdminPanel = () => {
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [certificateModalOpen, setCertificateModalOpen] = useState(false);
   const [m_Id, setM_Id] = useState("");
-  const [allLoader, setAllLoader] = useState({fetchalldata: false, download: false,searchFilter:false});
+  const [m_IdList, setM_IdList] = useState([]);
+  const  [errMsg,setErrMsg]=useState('')
+  const [allLoader, setAllLoader] = useState({
+    fetchalldata: false,
+    download: false,
+    searchFilter: false,
+    m_idFilteredData: false,
+  });
 
   const handleClose = () => {
     setOpenEditModal(false);
@@ -88,16 +96,16 @@ const AdminPanel = () => {
   };
 
   const fetchAllCertificates = async () => {
-    setAllLoader({...allLoader, fetchalldata: true});
+    setAllLoader({ ...allLoader, fetchalldata: true });
     try {
       const response = await certificatesApis.getAll();
       console.log(response);
       const { certificates } = response?.data;
       console.log(certificates);
       setCertificates(certificates);
-      setAllLoader({...allLoader, fetchalldata: false});
+      setAllLoader({ ...allLoader, fetchalldata: false });
     } catch (err) {
-      setAllLoader({...allLoader, fetchalldata: false});
+      setAllLoader({ ...allLoader, fetchalldata: false });
       console.log(err);
     }
   };
@@ -109,6 +117,10 @@ const AdminPanel = () => {
 
   const handleAddCertificate = async () => {
     setLoading(true);
+    if(formData?.record_name?.length > 90){
+      setErrMsg("Record name should be less than 90 characters")
+      return
+    }
 
     const newEntries =
       formData.type === "Single"
@@ -131,7 +143,8 @@ const AdminPanel = () => {
       if (status === 201) {
         fetchAllCertificates();
       }
-      setFormData({type: "Single",
+      setFormData({
+        type: "Single",
         date: "",
         description: "",
         record_name: "",
@@ -147,6 +160,13 @@ const AdminPanel = () => {
       setLoading(false);
       console.log(err);
     }
+  };
+
+  const showMultipleSheetModal = (m_Id) => {
+    setAllLoader({ ...allLoader, m_idFilteredData: false });
+    const filteredData = certificates.filter((cert) => cert.m_id === m_Id);
+    setM_IdList(filteredData);
+    setAllLoader({ ...allLoader, m_idFilteredData: false });
   };
 
   const handleSelection = ({ countryCode, stateCode }) => {
@@ -173,8 +193,13 @@ const AdminPanel = () => {
       minWidth: 100,
       editable: true,
       cursor: "pointer",
-      onClick: (row) =>
-        row.type.toLowerCase() === "multiple" && setM_Id(row.type),
+      onClick: (row) => {
+        if (row.type.toLowerCase() === "multiple") {
+          console.log("m_id selected:", row);
+          setM_Id(true);
+          showMultipleSheetModal(row.m_id || null);
+        }
+      },
     },
   ];
 
@@ -204,36 +229,52 @@ const AdminPanel = () => {
     onDownloadPDF(cert);
   };
 
-const onPublish = async (cert) => {
-  try {
-    console.log("Publishing:", cert);
-    const response = await certificatesApis.publishCertificate(cert?._id);
-    console.log("Publish response:", response?.data);
-    // optionally: show toast, reload, etc.
-  } catch (err) {
-    console.error("Publish Error:", err);
-  }
-};
+  const onPublish = async (cert) => {
+    try {
+      console.log("Publishing:", cert);
+      const response = await certificatesApis.publishCertificate(cert?._id);
+      console.log("Publish response:", response?.data);
+      // optionally: show toast, reload, etc.
+    } catch (err) {
+      console.error("Publish Error:", err);
+    }
+  };
 
-const onSearch = (searchId) => {
-  if (!searchId.trim()) return; // Don't search on empty input
+  const handleCertificateDelete = async () => {
+    console.log(selectedCert)
+    try {
+      const response = await certificatesApis.deleteCertificate(
+       {id: selectedCert?._id}
+      );
+      if(response?.data?.status === 200){
+        fetchAllCertificates();
+      }
+      console.log("Delete response:", response?.data);
+      // optionally: show toast, reload, etc.
+    } catch (err) {
+      console.error("Delete Error:", err);
+    }
+  };
 
-  setAllLoader({ ...allLoader, fetchalldata: true });
+  const onSearch = (searchId) => {
+    if (!searchId.trim()) return; // Don't search on empty input
 
-  const [country, state, recordNo] = searchId.split("-");
+    setAllLoader({ ...allLoader, fetchalldata: true });
 
-  const filteredCertificates = certificates.filter(
-    (cert) =>
-      cert.country?.toUpperCase() === country?.toUpperCase() &&
-      cert.state?.toUpperCase() === state?.toUpperCase() &&
-      cert.recordNo?.toString() === recordNo
-  );
+    const [country, state, recordNo] = searchId.split("-");
 
-  setCertificates(filteredCertificates.length > 0 ? filteredCertificates : []);
-  setAllLoader({ ...allLoader, fetchalldata: false });
-};
+    const filteredCertificates = certificates.filter(
+      (cert) =>
+        cert.country?.toUpperCase() === country?.toUpperCase() &&
+        cert.state?.toUpperCase() === state?.toUpperCase() &&
+        cert.recordNo?.toString() === recordNo
+    );
 
-
+    setCertificates(
+      filteredCertificates.length > 0 ? filteredCertificates : []
+    );
+    setAllLoader({ ...allLoader, fetchalldata: false });
+  };
 
   return (
     <AdminLayout
@@ -247,10 +288,15 @@ const onSearch = (searchId) => {
           columns={columns}
           data={certificates}
           onView={onView}
+          isView
           onEdit={onEdit}
+          isEdit
           onDelete={onDelete}
+          isDelete
           onCertificate={onCertificate}
+          isCertificate
           onPublish={onPublish}
+          isPublish
           loading={allLoader.fetchalldata}
           isPagination
         />
@@ -335,6 +381,7 @@ const onSearch = (searchId) => {
               onChange={handleInputChange}
               margin="normal"
               disabled={openViewModal}
+              
             />
             <TextField
               fullWidth
@@ -363,7 +410,9 @@ const onSearch = (searchId) => {
               data={formData}
               openViewModal={openViewModal}
             />
+            <Typography sx={{ color: "red" }}>{errMsg}</Typography>
           </DialogContent>
+
           <DialogActions>
             <Button onClick={handleClose} color="warning" variant="outlined">
               Cancel
@@ -385,7 +434,7 @@ const onSearch = (searchId) => {
         open={openConfirmationModal}
         modalTitle="Delete Certificate"
         modalSubtitle="Are you sure you want to proceed?"
-        primaryAction={{ label: "Yes", onClick: () => alert("Confirmed!") }}
+        primaryAction={{ label: "Yes", onClick: () => handleCertificateDelete() }}
         secondaryAction={{ label: "No", onClick: () => alert("Cancelled!") }}
       />
       <DynamicModal
@@ -395,6 +444,23 @@ const onSearch = (searchId) => {
         onDownload={() => onDownload(formData)}
       >
         <Certificate recordData={formData} />
+      </DynamicModal>
+      <DynamicModal open={m_Id} onClose={() => setM_Id(false)}>
+        <DynamicTable
+          columns={columns}
+          data={m_IdList}
+          onView={onView}
+          isView
+          onEdit={onEdit}
+          isEdit
+          onDelete={onDelete}
+          isDelete
+          onCertificate={onCertificate}
+          isCertificate
+          // onPublish={onPublish}
+          loading={allLoader.m_idFilteredData}
+          isPagination
+        />
       </DynamicModal>
     </AdminLayout>
   );

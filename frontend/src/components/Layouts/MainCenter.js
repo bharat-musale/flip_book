@@ -20,6 +20,8 @@ function MainCenter({
     setLoading(searchLoader);
   };
 
+  
+
   return (
     <div className="main-center" style={{ marginBottom: "20px" }}>
       {/* Search Box */}

@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 
-export default function renderEmptyPage (){
+export default function EmptyPage ({error}) {
+  console.log(error);
      return (
        <Box
          sx={{
@@ -17,9 +18,9 @@ export default function renderEmptyPage (){
        >
          <Typography
            variant="body1"
-           sx={{ color: "#666", textAlign: "center" }}
+           sx={{ color: "#666", textAlign: "center" , wordWrap: "break-word",width:"87%"}}
          >
-           Search for a certificate to view its details
+           {error ?? "Search  for a certificate to view its details"}
          </Typography>
        </Box>
      );

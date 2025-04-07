@@ -1,231 +1,156 @@
-import React, { useState, useRef, useEffect } from 'react';
-import HTMLFlipBook from 'react-pageflip';
-import { Box, Button, Container, TextField, Typography, Paper } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
-import {  certificatesApis, IMAGE_BASE_URL } from '../services/api';
-import ErrorBoundary from './ErrorBoundary';
-import DashboardLayout from './Layouts/DashboardLayout';
-import DashboardLayoutAdt from './Layouts/DashboardLayoutAdt';
-import Certificate from './Layouts/Certificate';
-import DynamicModal from './Layouts/DynamicModal';
-import renderCoverPage from './Layouts/BookPage/CoverPage';
-import renderLeftPage from './Layouts/BookPage/LeftPage';
-import renderEmptyPage from './Layouts/BookPage/EmptyPage';
-import renderRightPage from './Layouts/BookPage/RightPage';
+import React, { useState, useRef, useEffect } from "react";
+import HTMLFlipBook from "react-pageflip";
+import { Box, Button, Typography } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
+import { certificatesApis } from "../services/api";
+import ErrorBoundary from "./ErrorBoundary";
+import DashboardLayoutAdt from "./Layouts/DashboardLayoutAdt";
+import renderCoverPage from "./Layouts/BookPage/CoverPage";
+import renderLeftPage from "./Layouts/BookPage/LeftPage";
+import renderEmptyPage from "./Layouts/BookPage/EmptyPage";
+import renderRightPage from "./Layouts/BookPage/RightPage";
+import { useAuth } from "../context/AuthContext";
+import LeftPage from "./Layouts/BookPage/LeftPage";
+import RightPage from "./Layouts/BookPage/RightPage";
+import EmptyPage from "./Layouts/BookPage/EmptyPage";
 
-const Page = React.forwardRef((props, ref) => {
-  return (
-    <div className="page" ref={ref}>
-      {props.children}
-    </div>
-  );
-});
+const Page = React.forwardRef((props, ref) => (
+  <div className="page" ref={ref}>
+    {props.children}
+  </div>
+));
 
 const BookView = () => {
-  const [searchId, setSearchId] = useState('');
-  const [foundRecord, setFoundRecord] = useState({
-    recordNo: "12345", // Example record number
-    issuedTo: "John Doe", // Example name
-    text: "This is the official certificate text, confirming the achievement.", // Example certificate text
+  const [recordData, setRecordData] = useState({
+    recordNo: "",
+    issuedTo: "",
+    text: "",
   });
   const [showSearchResult, setShowSearchResult] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isFlipping, setIsFlipping] = useState(false);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
-  
+  const [emptyPageError,setEmptyPageError]=useState('')
+
   const bookRef = useRef();
   const bookContainerRef = useRef();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const isSignedUp = location.state?.isSignedUp || localStorage.getItem('token');
-  const user = location.state?.user;
+  const { user } = useAuth();
+
+  const isSignedUp =
+    location.state?.isSignedUp || localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchCertificate = async () => {
+      if (user?.role === "user") {
+        try {
+          const response = await certificatesApis.getCertificateByMail({
+            email: user?.email,
+          });
+          console.log(response?.data?.certificates);
+          setRecordData(response?.data?.certificates[0]);
+        } catch (error) {
+          setError(error.message);
+          setRecordData(null);
+          console.error("Failed to fetch certificate:", error);
+        }
+      }
+    };
+    console.log(recordData)
+    fetchCertificate();
+  }, [user]);
+
 
   const scrollToBook = () => {
     if (bookContainerRef.current) {
-      bookContainerRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
+      bookContainerRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
       });
     }
   };
 
   const playFlipSound = () => {
-    const audio = new Audio('/sounds/page-flip.mp3');
+    const audio = new Audio("/sounds/page-flip.mp3");
     audio.volume = 0.3;
     audio.play().catch(() => {});
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (searchId) => {
     setLoading(true);
     setError(null);
+    console.log(searchId)
     try {
-      const response = await certificatesApis.previewByRecordNo(searchId);
-      setFoundRecord(response.data.data.certificate);
+      const response = await certificatesApis.previewByRecordNo({recordNo:searchId});
+      console.log(response);
+      setRecordData(response.data.certificate[0]);
       setShowSearchResult(true);
-      
-      // Sequence of animations
+
       if (bookRef.current) {
         setIsFlipping(true);
-        setIsAutoFlipping(true);  // Set auto-flipping flag
-        
-        // 1. Scroll to the book
+        setIsAutoFlipping(true);
         scrollToBook();
-        
-        // 2. Start page flipping sequence after scroll
+
         setTimeout(() => {
-          // First flip
           bookRef.current.pageFlip().flip(1);
           playFlipSound();
-          
-          // Second flip after a delay
           setTimeout(() => {
             bookRef.current.pageFlip().flip(2);
             playFlipSound();
             setTimeout(() => {
               setIsFlipping(false);
-              setIsAutoFlipping(false);  // Reset auto-flipping flag
+              setIsAutoFlipping(false);
             }, 1000);
           }, 800);
         }, 500);
       }
     } catch (err) {
-      setError('Certificate not found. Please check the record number.');
+      console.log(err);
+      setEmptyPageError("Certificate not found. Please check the record number.");
       setShowSearchResult(false);
-      setFoundRecord(null);
-      setIsAutoFlipping(false);  // Reset flag in case of error
+      setRecordData(null);
+      setIsAutoFlipping(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleViewFullDetails = async () => {
+  const handleViewFullDetails = async (searchId) => {
     try {
-      const response = await certificatesApis.getByRecordNo(searchId);
-      setFoundRecord({
-        ...foundRecord,
+      const response = (await certificatesApis.getByRecordNo(searchId));
+      setRecordData({
+        ...recordData,
         text: response.data.data.certificate.text,
-        certificateImage: response.data.data.certificate.certificateImage
+        certificateImage: response.data.data.certificate.certificateImage,
       });
     } catch (err) {
       if (err.response?.status === 401) {
-        navigate('/login', { state: { recordData: foundRecord } });
+        navigate("/login", { state: { recordData } });
       } else {
-        setError('Error loading full certificate details.');
+        setError("Error loading full certificate details.");
       }
     }
   };
 
-  // Handle page flipping events
-  const onFlip = (e) => {
-    if (!isAutoFlipping) {  // Only play sound for manual flips
+  const onFlip = () => {
+    if (!isAutoFlipping) {
       playFlipSound();
     }
   };
 
   return (
-    <DashboardLayoutAdt  >
-      {/* <DashboardLayout> */}
+    <DashboardLayoutAdt onSearch={(searchId)=>{handleSearch(searchId)}}>
       <Box
         sx={{
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
-          pb: 10, // Add padding at bottom
+          pb: 10,
           mt: 3,
         }}
       >
-        {/* Search Box */}
-        {/* <Paper elevation={3} sx={{ 
-            mb: 4, 
-            p: 2,
-            borderRadius: 2,
-            width: '100%',
-            maxWidth: 500,
-            mx: 'auto',
-            background: '#fff',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            border: '1px solid #c19a49',
-            transition: 'transform 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-2px)'
-            }
-          }}>
-            <Box sx={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2
-            }}>
-              <Box sx={{ 
-                display: 'flex',
-                gap: 2,
-                alignItems: 'center'
-              }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Enter Record ID (e.g., CERT001)"
-                  value={searchId}
-                  onChange={(e) => setSearchId(e.target.value)}
-                  size="small"
-                  sx={{
-                    flexGrow: 1,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 1,
-                      '&:hover fieldset': {
-                        borderColor: '#c19a49',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#003366',
-                      }
-                    }
-                  }}
-                />
-                <Button 
-                  variant="contained" 
-                  onClick={handleSearch}
-                  disabled={loading}
-                  sx={{
-                    bgcolor: '#003366',
-                    '&:hover': {
-                      bgcolor: '#004d99'
-                    },
-                    borderRadius: 1,
-                    minWidth: '100px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {loading ? 'Searching...' : 'Search'}
-                </Button>
-                {isSignedUp && (
-                  <Button 
-                    variant="outlined" 
-                    onClick={handleLogout}
-                    sx={{
-                      borderColor: '#003366',
-                      color: '#003366',
-                      '&:hover': {
-                        borderColor: '#004d99',
-                        bgcolor: 'rgba(0,51,102,0.05)'
-                      },
-                      borderRadius: 1,
-                      minWidth: '100px'
-                    }}
-                  >
-                    Logout
-                  </Button>
-                )}
-              </Box>
-              {error && (
-                <Typography color="error" sx={{ textAlign: 'center' }}>
-                  {error}
-                </Typography>
-              )}
-            </Box>
-          </Paper> */}
-
-        {/* Flip Book */}
         <ErrorBoundary>
           <Box
             ref={bookContainerRef}
@@ -272,35 +197,37 @@ const BookView = () => {
               startZIndex={0}
               style={{ perspective: "1500px" }}
             >
-              {/* Cover Page */}
               <Page number={1}>{renderCoverPage()}</Page>
 
-              {/* Left Page - Text and Button */}
               <Page number={2}>
-                {(showSearchResult && foundRecord) || true
-                  ? renderLeftPage(navigate, foundRecord, isSignedUp,recordData)
-                  : renderEmptyPage()}
+                {console.log(recordData)}
+                {recordData ? (
+                  // renderLeftPage(recordData, isSignedUp)
+                  <LeftPage recordData={recordData} isSignedUp={isSignedUp} />
+                ) : (
+                  // renderEmptyPage(emptyPageError)
+                  <EmptyPage error={emptyPageError} />
+                )}
               </Page>
 
-              {/* Right Page - Certificate Image */}
               <Page number={3}>
-                {(showSearchResult && foundRecord) || true
-                  ? renderRightPage(recordData)
-                  : renderEmptyPage()}
+                {recordData ? (
+                  //  renderRightPage(recordData, isSignedUp)
+                  <RightPage
+                    recordData={recordData}
+                    isSignedUp={isSignedUp}
+                    download={isSignedUp}
+                  />
+                ) : (
+                  renderEmptyPage(emptyPageError)
+                )}
               </Page>
             </HTMLFlipBook>
           </Box>
         </ErrorBoundary>
       </Box>
-      {/* </DashboardLayout> */}
     </DashboardLayoutAdt>
   );
 };
 
 export default BookView;
-export const recordData = {
-  certificateId: "USA-NYC-90027",
-  achievement: "Longest time breath held voluntarily 18 minutes 05.47 seconds (female)",
-  recipient: "JANE WRITER",
-  eventDetails: 'Achieved at an event organised by "THE BOOK OF WORLD RECORD" at Rockland County, New Square, New York held by "IYA" on June 21, 2024.',
-};

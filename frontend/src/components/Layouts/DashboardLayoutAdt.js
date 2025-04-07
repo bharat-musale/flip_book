@@ -5,13 +5,13 @@ import "./style.css";
 import Footer from "../Footer";
 import AdvertiserService from "./Advertise";
 
-function DashboardLayoutAdt({ children }) {
+function DashboardLayoutAdt({ children,onSearch=()=>{} }) {
 
     return (
         <div className="dashboard">
             <div className="dashboard-layout">
                 <MainLeft >{<><AdvertiserService /><AdvertiserService numberOfAdvertisers={2} /></>}</MainLeft>
-                <MainCenter isSearch>{children}</MainCenter>
+                <MainCenter isSearch onSearch={onSearch}>{children}</MainCenter>
                 <MainRight >{<><AdvertiserService /><AdvertiserService numberOfAdvertisers={2} /></>}</MainRight>        
             </div>
             <Footer />

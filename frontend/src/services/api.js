@@ -32,14 +32,15 @@ export const auth = {
 export const certificatesApis = {
   getAll: () => api.get("/admin/all-certificates"),
   getByRecordNo: (recordNo) => api.get(`/certificates/${recordNo}`),
-  previewByRecordNo: (recordNo) => api.get(`/certificates/preview/${recordNo}`),
+  previewByRecordNo: (recordNo) =>
+    api.post(`/user/certificates/preview`, recordNo),
   publishCertificate: (id) => api.put(`/admin/certificates/publish/${id}`),
-    // publishCertificate: (id) => axios.put(`${API_BASE}/certificates/publish/${id}`)
-
+  // publishCertificate: (id) => axios.put(`${API_BASE}/certificates/publish/${id}`)
+  getCertificateByMail: (email) => api.post(`/user/certificates/email`, email),
   create: (certificateData) => api.post("/admin/certificate", certificateData),
   update: (recordNo, certificateData) =>
     api.put(`/certificates/${recordNo}`, certificateData),
-  delete: (recordNo) => api.delete(`/certificates/${recordNo}`),
+  deleteCertificate: (id) => api.post(`/admin/certificates/delete`, id),
 };
 
 export const sendContactMessage = async (data) => {

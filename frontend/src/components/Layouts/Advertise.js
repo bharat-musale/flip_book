@@ -2,7 +2,6 @@ import { Paper } from '@mui/material';
 import './style.css'
 const AdvertiserService=(props)=>{
     const {numberOfAdvertisers} = props;
-    console.log(numberOfAdvertisers)
     const advertisementData=[{name:'ad1'},{name:'ad2'},{name:'ad3'}]
     return (
         <Paper className="advertise">

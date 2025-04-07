@@ -37,7 +37,6 @@ const CountryStateSelector = ({
     onSelectionChange?.({ countryCode: selectedCountry, stateCode });
   };
 
-  console.log(JSON.stringify(data), data?.country, data?.state);
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <TextField

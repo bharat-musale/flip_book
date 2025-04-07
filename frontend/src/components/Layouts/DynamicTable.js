@@ -21,6 +21,11 @@ export default function DynamicTable({
   onDelete = () => {},
   onCertificate = () => {},
   onPublish = () => {},
+  isView = false,
+  isEdit = false,
+  isDelete = false,
+  isCertificate = false,
+  isPublish = false,
   isPagination = false,
 }) {
   const [page, setPage] = React.useState(0);
@@ -94,21 +99,21 @@ export default function DynamicTable({
                 <TableCell
                   sx={{ position: "sticky", right: 0, background: "white" }}
                 >
-                  <IconButton color="primary" onClick={() => onView(row)}>
+                  {isView && <IconButton color="primary" onClick={() => onView(row)}>
                     V
-                  </IconButton>
-                  <IconButton color="secondary" onClick={() => onEdit(row)}>
+                  </IconButton>}
+                  {isEdit && <IconButton color="secondary" onClick={() => onEdit(row)}>
                     E
-                  </IconButton>
-                  <IconButton color="warning" onClick={() => onDelete(row)}>
+                  </IconButton>}
+                  {(isDelete || row?.isDeleted) && <IconButton color="warning" onClick={() => onDelete(row)}>
                     D
-                  </IconButton>
-                  <IconButton color="info" onClick={() => onCertificate(row)}>
+                  </IconButton>}
+                  {isCertificate && <IconButton color="info" onClick={() => onCertificate(row)}>
                     C
-                  </IconButton>
-                  <IconButton color="primary" onClick={() => onPublish(row)}>
+                  </IconButton>}
+                 {isPublish && <IconButton color={`${row.isPublished ? "success" : "error"}`} onClick={() => onPublish(row)}>
                     P
-                  </IconButton>
+                  </IconButton>}
                 </TableCell>
               </TableRow>
             ))

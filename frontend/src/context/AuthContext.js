@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     console.log("Logging out...");
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setToken(null);
     setUser(false);
     navigate("/login");

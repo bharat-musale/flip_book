@@ -39,28 +39,53 @@ exports.addCertificate = async (req, res) => {
       savedCertificates.push(saved);
     }
 
-    res.status(201).json({message: "Certificates added successfully",numberOfCertificates:savedCertificates.length, certificates:savedCertificates,status:201});
+    res.status(201).json({
+      message: "Certificates added successfully",
+      numberOfCertificates: savedCertificates.length,
+      certificates: savedCertificates,
+      status: 201,
+    });
   } catch (err) {
     console.error("Certificate Creation Error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-
 exports.getAllCertificates = async (req, res) => {
   try {
-      const certificates = await Certificate.find();
-      res.send({status:200, message: "Certificates fetched successfully", certificates });
+    const certificates = (await Certificate.find()).reverse();
+    res.send({
+      status: 200,
+      message: "Certificates fetched successfully",
+      certificates,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error",status:500,error:error.message });
+    res.status(500).json({
+      message: "Internal Server Error",
+      status: 500,
+      error: error.message,
+    });
   }
-
 };
 
-// exports.deleteCertificate = async (req, res) => {
-//   await Certificate.findByIdAndDelete(req.params.id);
-//   res.send("Certificate deleted");
-// };
+exports.deleteCertificate = async (req, res) => {
+  console.log(req.body)
+  try {
+   const certificate = await Certificate.findById(req.body.id);
+   certificate.isDeleted = true;
+   await certificate.save();
+   res.status(200).json({
+     message: "Certificate deleted successfully",
+     status: 200,
+   });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal Server Error",
+      status: 500,
+      error: error.message,
+    });
+  }
+};
 // Controller - publishCertificate.js
 exports.publishCertificate = async (req, res) => {
   console.log("Publishing:", req.params.id);
@@ -73,9 +98,75 @@ exports.publishCertificate = async (req, res) => {
     certificate.isPublished = true;
     await certificate.save();
 
-    res.status(200).json({ message: "Certificate published successfully" });
+    res.status(200).json({ message: "Certificate published successfully", status: 200, certificate });
   } catch (err) {
     console.error("Publish Error:", err);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getCertificatesByMail = async (req, res) => {
+  try {
+    const certificates = await Certificate.find({ email: req.body.email });
+    const filteredForPublishedAndDeleted = certificates.filter((cert) => cert.isPublished === true && cert.isDeleted === false);
+    if (filteredForPublishedAndDeleted.length === 0) {
+      return res.status(404).json({
+        message: "No certificates found for the provided email",
+        status: 404,
+        certificates: filteredForPublishedAndDeleted,
+      });
+    }
+    res.status(200).json({
+      message: "Certificates fetched successfully",
+      status: 200,
+      certificates: filteredForPublishedAndDeleted,
+    });
+  } catch (err) {
+    console.error("Error fetching certificates by email:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getCertificatesByRecordNo = async (req, res) => {
+  try {
+    const { recordNo } = req.body;
+
+    if (!recordNo) {
+      return res.status(400).json({ message: "Record number is required" });
+    }
+
+    const [country, state, number] = recordNo.split("-");
+
+    if (!country || !state || !number) {
+      return res.status(400).json({ message: "Invalid record number format" });
+    }
+
+    const countryData = await Certificate.find({ country: country });
+    const stateData = countryData.filter((cert) => cert.state === state);
+    const recordNoData = stateData.filter((cert) => cert.recordNo === number);
+
+    if (recordNoData[0]?.isPublished === false) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "Certificate not published" });
+    } 
+    if (recordNoData[0]?.isDeleted === true) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "Certificate not fount" });
+    }
+
+    if (recordNoData?.length == 0) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "Certificate not found" });
+    }
+
+    return res.status(200).json({ status: 200, certificate: recordNoData });
+  } catch (error) {
+    console.error("Error fetching certificate by recordNo:", error);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal Server Error" });
   }
 };

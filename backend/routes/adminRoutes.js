@@ -11,7 +11,7 @@ const router = express.Router();
 // router.post("/certificate", authMiddleware, addCertificate);
 router.post("/certificate", addCertificate);
 router.get("/all-certificates", getAllCertificates);
-// router.delete("/certificate/:id", authMiddleware, deleteCertificate);
+router.post("/certificates/delete", deleteCertificate);
 router.put("/certificates/publish/:id", publishCertificate);
 
 module.exports = router;
