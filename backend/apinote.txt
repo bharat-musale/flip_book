@@ -1,0 +1,23 @@
+http://localhost:5000/welcome    (POST)
+Hello World!
+
+
+http://localhost:5000/api/admin/certificate (POST,Add certificate)
+{
+  "name": "Alice",
+  "email": "alice@exlample.com",
+  "country": "USA",
+  "state": "California",
+  "description": "Certified course completion"
+}
+{
+    "id": 5,
+    "type": "Single",
+    "date": "4512-05-14",
+    "description": "dfgtyub  gihkoj ojoi iugiu iugg; kihy 'olij 'oi",
+    "recordName": "engament ",
+    "country": "IN",
+    "state": "MH",
+    "name": "Bharat Ravindra Musale",
+    "email": "bharat5641@gmail.com"
+}
