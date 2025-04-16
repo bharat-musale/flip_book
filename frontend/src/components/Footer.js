@@ -1,8 +1,10 @@
 import React from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 
 const Footer = () => {
+  const navigate = useNavigate();
   return (
     <Box
       component="footer"
@@ -38,7 +40,7 @@ const Footer = () => {
           {/* Right side contact button */}
           <Button 
             color="inherit" 
-            onClick={() => Navigate('/contact')}
+            onClick={() => navigate('/contact')}
             sx={{
               backgroundColor: '#a98c46',
               '&:hover': {

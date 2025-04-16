@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5000/api';
+//
+// const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = "http://103.194.228.88:5000/api";
+
 
 // Create axios instance
 const api = axios.create({
@@ -11,7 +14,8 @@ const api = axios.create({
 });
 
 // Add image base URL
-export const IMAGE_BASE_URL = 'http://localhost:5000';
+//export const IMAGE_BASE_URL = 'http://localhost:5000';
+export const IMAGE_BASE_URL = "http://103.194.228.88:5000";
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
