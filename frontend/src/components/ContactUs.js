@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
   Snackbar,
   Alert,
+  MenuItem,
+  Box,
+  Button as MuiButton,
 } from "@mui/material";
-import { sendContactMessage } from "../services/api";
-import DashboardLayoutAdt from "./Layouts/DashboardLayoutAdt";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { sendContactMessage } from "../services/api";
+import DashboardLayoutAdt from "./Layouts/DashboardLayoutAdt";
+import "./ContactUsModern.css"; // Include your modern CSS here
 
 const ContactUs = () => {
   const [snackbar, setSnackbar] = useState({
@@ -21,27 +19,22 @@ const ContactUs = () => {
     severity: "success",
   });
 
-  // Formik for Form Handling & Validation
   const formik = useFormik({
     initialValues: {
       name: "",
       email: "",
-      subject: "",
-      message: "",
+      mobile: "",
+      purpose: "",
+      description: "",
     },
     validationSchema: Yup.object({
-      name: Yup.string()
-        .min(3, "Name must be at least 3 characters")
-        .required("Name is required"),
-      email: Yup.string()
-        .email("Invalid email format")
-        .required("Email is required"),
-      subject: Yup.string()
-        .min(5, "Subject must be at least 5 characters")
-        .required("Subject is required"),
-      message: Yup.string()
-        .min(10, "Message must be at least 10 characters")
-        .required("Message is required"),
+      name: Yup.string().min(3).required("Name is required"),
+      email: Yup.string().email().required("Email is required"),
+      mobile: Yup.string()
+        .matches(/^[0-9]{10}$/, "Mobile must be 10 digits")
+        .required("Mobile is required"),
+      purpose: Yup.string().required("Purpose is required"),
+      description: Yup.string().min(10).required("Description is required"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -52,10 +45,10 @@ const ContactUs = () => {
           severity: "success",
         });
         resetForm();
-      } catch (error) {
+      } catch {
         setSnackbar({
           open: true,
-          message: "Failed to send message. Please try again.",
+          message: "Failed to send message. Try again.",
           severity: "error",
         });
       }
@@ -64,112 +57,161 @@ const ContactUs = () => {
 
   return (
     <DashboardLayoutAdt>
-      <Container maxWidth="md" sx={{ mt: 8, mb: 8 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Typography variant="h4" align="center" gutterBottom sx={{ color: "#003366" }}>
-            Contact Us
-          </Typography>
-          <Typography variant="body1" align="center" sx={{ mb: 4, color: "#666" }}>
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-          </Typography>
+      <div className="background">
+        <div className="container">
+          <div className="screen">
+            <div className="screen-header">
+              <div className="screen-header-left">
+                <div className="screen-header-button close"></div>
+                <div className="screen-header-button maximize"></div>
+                <div className="screen-header-button minimize"></div>
+              </div>
+              <div className="screen-header-right">
+                <div className="screen-header-ellipsis"></div>
+                <div className="screen-header-ellipsis"></div>
+                <div className="screen-header-ellipsis"></div>
+              </div>
+            </div>
 
-          <Box component="form" onSubmit={formik.handleSubmit}>
-            {/* Name Field */}
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              value={formik.values.name}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.name && Boolean(formik.errors.name)}
-              helperText={formik.touched.name && formik.errors.name}
-              sx={styles.textField}
-            />
-
-            {/* Email Field */}
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              value={formik.values.email}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
-              sx={styles.textField}
-            />
-
-            {/* Subject Field */}
-            <TextField
-              fullWidth
-              label="Subject"
-              name="subject"
-              value={formik.values.subject}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.subject && Boolean(formik.errors.subject)}
-              helperText={formik.touched.subject && formik.errors.subject}
-              sx={styles.textField}
-            />
-
-            {/* Message Field */}
-            <TextField
-              fullWidth
-              label="Message"
-              name="message"
-              multiline
-              rows={4}
-              value={formik.values.message}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.message && Boolean(formik.errors.message)}
-              helperText={formik.touched.message && formik.errors.message}
-              sx={styles.textField}
-            />
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={styles.button}
+            <Box
+              component="form"
+              onSubmit={formik.handleSubmit}
+              className="screen-body"
             >
-              Send Message
-            </Button>
-          </Box>
-        </Paper>
+              <div className="screen-body-item left">
+                <div className="app-title">
+                  <span>CONTACT</span>
+                  <span>US</span>
+                </div>
+                <div className="app-contact">CONTACT INFO : +91 1234567890</div>
+              </div>
+              <div className="screen-body-item">
+                <div className="app-form">
+                  <div className="app-form-group">
+                    <input
+                      className="app-form-control"
+                      placeholder="NAME"
+                      name="name"
+                      value={formik.values.name}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                      <div className="error-text">{formik.errors.name}</div>
+                    )}
+                  </div>
 
-        {/* Snackbar Alert for Success/Error Messages */}
+                  <div className="app-form-group">
+                    <input
+                      className="app-form-control"
+                      placeholder="EMAIL"
+                      name="email"
+                      value={formik.values.email}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.email && formik.errors.email && (
+                      <div className="error-text">{formik.errors.email}</div>
+                    )}
+                  </div>
+
+                  <div className="app-form-group">
+                    <input
+                      className="app-form-control"
+                      placeholder="CONTACT NO"
+                      name="mobile"
+                      value={formik.values.mobile}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.mobile && formik.errors.mobile && (
+                      <div className="error-text">{formik.errors.mobile}</div>
+                    )}
+                  </div>
+
+                  <div className="app-form-group">
+                    <select
+                      className="app-form-control"
+                      name="purpose"
+                      value={formik.values.purpose}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    >
+                      <option value="">Select Purpose</option>
+                      <option value="Support">Support</option>
+                      <option value="Sales">Sales</option>
+                      <option value="Feedback">Feedback</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    {formik.touched.purpose && formik.errors.purpose && (
+                      <div className="error-text">{formik.errors.purpose}</div>
+                    )}
+                  </div>
+
+                  <div className="app-form-group message">
+                    <textarea
+                      className="app-form-control"
+                      placeholder="DESCRIPTION"
+                      name="description"
+                      rows={3}
+                      value={formik.values.description}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.description && formik.errors.description && (
+                      <div className="error-text">
+                        {formik.errors.description}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="app-form-group buttons">
+                    <MuiButton
+                      variant="text"
+                      color="error"
+                      onClick={() => formik.resetForm()}
+                      className="app-form-button"
+                    >
+                      CANCEL
+                    </MuiButton>
+                   
+<button class="send-button">
+  <div class="svg-wrapper-1">
+    <div class="svg-wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <path fill="none" d="M0 0h24v24H0z"></path>
+        <path
+          fill="currentColor"
+          d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z"
+        ></path>
+      </svg>
+    </div>
+  </div>
+  <span>Send</span>
+</button>
+
+                  </div>
+                </div>
+              </div>
+            </Box>
+          </div>
+        </div>
+
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
         >
-          <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity}>
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity}
+          >
             {snackbar.message}
           </Alert>
         </Snackbar>
-      </Container>
+      </div>
     </DashboardLayoutAdt>
   );
 };
 
 export default ContactUs;
-
-// 🌟 Custom Styles
-const styles = {
-  textField: {
-    mb: 2,
-    "& .MuiOutlinedInput-root": {
-      "&:hover fieldset": { borderColor: "#c19a49" },
-      "&.Mui-focused fieldset": { borderColor: "#003366" },
-    },
-  },
-  button: {
-    mt: 2,
-    backgroundColor: "#003366",
-    "&:hover": { backgroundColor: "#004b8f" },
-  },
-};

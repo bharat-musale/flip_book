@@ -13,6 +13,7 @@ import { useAuth } from "../context/AuthContext";
 import LeftPage from "./Layouts/BookPage/LeftPage";
 import RightPage from "./Layouts/BookPage/RightPage";
 import EmptyPage from "./Layouts/BookPage/EmptyPage";
+import DashboardLayout from "./Layouts/DashboardLayout";
 
 const Page = React.forwardRef((props, ref) => (
   <div className="page" ref={ref}>
@@ -42,6 +43,24 @@ const BookView = () => {
   const isSignedUp =
     location.state?.isSignedUp || localStorage.getItem("token");
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkSize = () => {
+      console.log(window.innerWidth);
+      if (window.innerWidth < 1400) {
+        setIsMobile(true);
+      } else {
+        setIsMobile(false);
+      }
+    };
+    checkSize();
+    window.addEventListener("resize", checkSize);
+    return () => window.removeEventListener("resize", checkSize);
+  }, []);
+
+const LayoutComponent = !isMobile ? DashboardLayoutAdt : DashboardLayout;
+console.log(isMobile);
   useEffect(() => {
     const fetchCertificate = async () => {
       if (user?.role === "user") {
@@ -141,10 +160,10 @@ const BookView = () => {
   };
 
   return (
-    <DashboardLayoutAdt onSearch={(searchId)=>{handleSearch(searchId)}}>
+    <LayoutComponent onSearch={(searchId)=>{handleSearch(searchId)}} isMobile={isMobile}>
       <Box
         sx={{
-          minHeight: "100vh",
+          // minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           pb: 10,
@@ -226,7 +245,7 @@ const BookView = () => {
           </Box>
         </ErrorBoundary>
       </Box>
-    </DashboardLayoutAdt>
+    </LayoutComponent>
   );
 };
 

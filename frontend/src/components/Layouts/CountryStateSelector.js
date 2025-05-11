@@ -21,7 +21,7 @@ const CountryStateSelector = ({
     if (selectedCountry) {
       const statesOfCountry = State.getStatesOfCountry(selectedCountry);
       setStates(statesOfCountry);
-      setSelectedState(""); // Reset state on country change
+      setSelectedState(""); 
     }
   }, [selectedCountry]);
 

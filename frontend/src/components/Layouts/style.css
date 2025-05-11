@@ -5,14 +5,12 @@
 .dashboard-layout{
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap
-
+    flex-wrap: wrap;
 }
 .main{
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding:1rem;
     gap:1rem;
 }
 .main-right{
@@ -29,10 +27,8 @@
     cursor: pointer;
     background-color: #fff;
     border-radius: 4px;
-    overflow: hidden;
     text-align: center;
     position: relative;
-    width: -webkit-fill-available;
 }
 .main-center{
     min-height: 85vh;

@@ -6,6 +6,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const contactRoutes = require("./routes/contact");
 
 const app = express();
 app.use(express.json());
@@ -19,6 +20,8 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/contact", contactRoutes);
+
 // app.use("/api/admin", (req,res)=>res.send("Admin Route",req.body));
 
 app.post("/welcome", (req, res) => res.send("Hello World!"));

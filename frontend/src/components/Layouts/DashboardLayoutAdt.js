@@ -10,9 +10,9 @@ function DashboardLayoutAdt({ children,onSearch=()=>{} }) {
     return (
         <div className="dashboard">
             <div className="dashboard-layout">
-                <MainLeft >{<><AdvertiserService /><AdvertiserService numberOfAdvertisers={2} /></>}</MainLeft>
+                <MainLeft >{<><AdvertiserService src="a1.png" /><AdvertiserService numberOfAdvertisers={2} imageArr={["a3.jpg","a5.jpg"]}  /></>}</MainLeft>
                 <MainCenter isSearch onSearch={onSearch}>{children}</MainCenter>
-                <MainRight >{<><AdvertiserService /><AdvertiserService numberOfAdvertisers={2} /></>}</MainRight>        
+                <MainRight >{<><AdvertiserService src="a4.jpg" /><AdvertiserService numberOfAdvertisers={2} imageArr={["a2.jpg","a6.jpg"]} /></>}</MainRight>        
             </div>
             <Footer />
         </div>
