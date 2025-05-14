@@ -3,35 +3,33 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { generateOTP } = require("../services/otpservice");
 const { OTP } = require("../models/Otp");
-
-
+const { sendVerificationEamil } = require("../middleware/Email");
 
 exports.register = async (req, res) => {
   const { error } = validateUser(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
   let user = await User.findOne({ email: req.body.email });
-  if (user) return res.status(400).json({ status: 400, message: "Email already registered" });
+  if (user)
+    return res
+      .status(400)
+      .json({ status: 400, message: "Email already registered" });
 
-  try {user = new User(req.body);
-  await user.save();
- res
-   .status(201)
-   .json({
-     status: 201,
-     message: "User registered successfully",
-   });
+  try {
+    user = new User(req.body);
+    await user.save();
+    res.status(201).json({
+      status: 201,
+      message: "User registered successfully",
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: 500,
-        message: "Internal server error",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
-
 
 exports.login = async (req, res) => {
   try {
@@ -102,7 +100,9 @@ exports.sendOTP = async (req, res) => {
       await OTP.create({ email, otp });
     }
 
-    console.log(`OTP for ${user.email}: ${otp}`);
+    // Send OTP via email
+    await sendVerificationEamil(email, otp);
+
     return res
       .status(200)
       .json({ status: 200, message: "OTP sent successfully" });

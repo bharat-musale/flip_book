@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Contact = require("../models/Contact");
+const { sendContactEmail } = require("../middleware/Email");
 
-// POST /api/contact
 router.post("/", async (req, res) => {
   try {
     const { name, email, mobile, purpose, description } = req.body;
@@ -18,11 +18,15 @@ router.post("/", async (req, res) => {
       purpose,
       description,
     });
+
     await newContact.save();
 
-    res.status(201).json({ message: "Message received" });
+    // ✅ Send email notification
+    await sendContactEmail({ name, email, mobile, purpose, description });
+
+    res.status(201).json({ message: "Message received and email sent" });
   } catch (error) {
-    console.error("Error saving contact:", error);
+    console.error("Error handling contact:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

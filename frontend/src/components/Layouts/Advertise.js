@@ -2,6 +2,8 @@ import { Paper } from "@mui/material";
 import { useEffect, useState } from "react";
 import "./style.css";
 
+const isVideo = (filePath) => filePath?.toLowerCase().endsWith(".mp4");
+
 const AdvertiserService = (props) => {
   const { src, alt, imageArr, numberOfAdvertisers } = props;
   const [currentSrc, setCurrentSrc] = useState(
@@ -18,18 +20,28 @@ const AdvertiserService = (props) => {
           return newIndex;
         });
       }, 4000);
-
-      return () => clearInterval(intervalId); // Clear interval on unmount
+      return () => clearInterval(intervalId);
     }
   }, [imageArr]);
 
   return (
     <Paper className="advertise">
-      <img
-        src={currentSrc}
-        alt={alt || "bookofworldrecord"}
-        style={{ width: "250px", height: "300px" }}
-      />
+      {isVideo(currentSrc) ? (
+        <video
+          src={currentSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ width: "250px", height: "300px", objectFit: "cover" }}
+        />
+      ) : (
+        <img
+          src={currentSrc}
+          alt={alt || "bookofworldrecord"}
+          style={{ width: "250px", height: "300px" }}
+        />
+      )}
     </Paper>
   );
 };
